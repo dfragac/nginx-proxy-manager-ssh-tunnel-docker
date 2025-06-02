@@ -1,0 +1,27 @@
+services:
+  nginx-proxy-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - '81:81'                               # Admin interface for "localhost".
+      # - '80:80'                             # HTTP port for "localhost". (Optional. Not needed if you use SSH tunnel it will done inside the container).
+      # - '443:443'                           # HTTPS port for "localhost". (Optional. Not needed if you use SSH tunnel it will done inside the container).
+    environment:
+      # DISABLE_IPV6: 'true'                  # Nginx Proxy manager: Disable IPv6 if not needed. (Optional)
+      SSH_SERVER: 'your-server.example.com'   # SSH tunnel: Change this to your public server or IP.
+      # SSH_PORT: '22'                        # SSH tunnel: Change this to your SSH port if different. (Optional - Default: 22)
+      # SSH_USER: 'root'                      # SSH tunnel: Change this to your SSH username (if you use low ports, use root). (Optional - Default: root)
+      # SSH_PASSWORD: 'your-secure-password'  # SSH tunnel: Change this to your SSH password. If you prefer to use SSH keys, you can set up the SSH keys in the `ssh/.keys` folder or let the containter generate them and then copy manual to server. (Optional)
+      # SSH_CHECK_INTERVAL: 30                # SSH tunnel: Interval to check the connection to the remote server. (Optional - Default: 60)
+      # SSH_MAX_FAILURES: 5                   # SSH tunnel: Maximum number of failures before logging an ERROR. (Optional - Default: 5)
+      # LOCAL_HTTP_PORT: '80'                 # SSH tunnel: Local HTTP port. (Optional - Default: 80)
+      # LOCAL_HTTPS_PORT: '443'               # SSH tunnel: ocal HTTPS port. (Optional - Default: 443)
+      # REMOTE_HTTP_PORT: '80'                # SSH tunnel: Remote HTTP port. (Optional - Default: 80)
+      # REMOTE_HTTPS_PORT: '443'              # SSH tunnel: Remote HTTPS port. (Optional - Default: 443)
+    volumes:
+      # - ./data:/data                        # Persist Nginx Proxy Manager data on a local folder/volume. (Optional)
+      # - ./letsencrypt:/etc/letsencrypt      # Persist Let's Encrypt certificates on a local folder/volume. (Optional)
+      # - ./ssh-tunnel/keys:/ssh-tunnel/keys  # Persist SSH keys on a local folder/volume. (Optional)

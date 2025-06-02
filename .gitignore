@@ -1,0 +1,19 @@
+# Ignore the data directory
+data
+
+# Ignore the letsencrypt directory
+letsencrypt
+
+# Ignore the ssh-tunnel/keys content directory (not the .gitkeep file)
+ssh-tunnel/keys/*
+!ssh-tunnel/keys/.gitkeep
+
+# Ignore environment variables file
+.env
+
+# Ignore any backup files
+*.bak
+*.backup
+
+# Ignore any log files in root
+*.log

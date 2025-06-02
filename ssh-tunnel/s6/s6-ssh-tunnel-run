@@ -1,0 +1,67 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+
+# Function to check connectivity
+check_connectivity() {
+    # Check basic DNS connectivity
+    if ! nc -z -w3 8.8.8.8 53 2>/dev/null; then
+        log_event "WARNING" "No network connectivity, waiting..."
+        return 1
+    fi
+
+    # Check SSH server connectivity
+    if [ -n "$SSH_SERVER" ] && ! nc -z -w5 "$SSH_SERVER" "${SSH_PORT:-22}" 2>/dev/null; then
+        log_error "WARNING" "Cannot reach SSH server, waiting..."
+        return 1
+    fi
+
+    return 0
+}
+
+# Function to log events
+log_event() {
+    local level="$1"
+    local message="$2"
+
+    # Validate parameters.
+    if [ -z "$level" ]; then
+        level="info"
+    fi
+    if [ -z "$message" ]; then
+        message=""
+    fi
+
+    # Transform level to lowercase
+    level=$(echo "$level" | tr '[:upper:]' '[:lower:]')
+
+    # Validate level
+    if [[ ! "$level" =~ ^(info|warning|error)$ ]]; then
+        log_event "INFO" "Invalid log level: $level. Defaulting to 'info'."
+        level="info"
+    fi
+
+    # Log the event
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $level $message" > /dev/stdout
+}
+
+# Wait a bit for system initialization
+log_event "INFO" "Waiting for system initialization..."
+sleep 5
+
+# Wait for network to be available
+log_event "INFO" "Waiting for network connectivity..."
+retry_count=0
+max_retries=10
+while ! check_connectivity; do
+    retry_count=$((retry_count + 1))
+    if [ $retry_count -gt $max_retries ]; then
+        log_event "ERROR" "Network not available after $max_retries attempts"
+        exit 1
+    fi
+    log_event "WARNING" "Network not ready (attempt $retry_count/$max_retries), waiting..."
+    sleep 5
+done
+
+# Network available, continue
+log_event "INFO" "Network is ready, launching SSH tunnel..."
+exec /ssh-tunnel/script/tunnel.sh
